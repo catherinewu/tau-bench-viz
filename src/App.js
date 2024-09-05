@@ -1,18 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import ReactJson from 'react-json-view';
 import './App.css';
-import { tauBenchInstructions } from './tauBenchInstructions';
-import { displayMetrics } from './computeMetrics'; // Import the computeMetrics function
+import tauBenchInstructions from './tauBenchInstructions';
 
 function App() {
   const [resultsJson, setResultsJson] = useState(null);
   const [instructionsJson, setInstructionsJson] = useState(null);
   const [selectedEntry, setSelectedEntry] = useState(null);
   const [fileName, setFileName] = useState(null);
-  const [metrics, setMetrics] = useState(null);
 
   useEffect(() => {
-    setInstructionsJson(tauBenchInstructions);
+    setInstructionsJson(tauBenchInstructions());
   }, []);
 
   const handleFileUpload = (event) => {
@@ -24,8 +22,6 @@ function App() {
       try {
         const json = JSON.parse(e.target.result);
         setResultsJson(json);
-        const computedMetrics = displayMetrics(json); // Compute metrics
-        setMetrics(computedMetrics);
       } catch (error) {
         console.error('Error parsing JSON:', error);
         alert('Error parsing JSON file. Please make sure it\'s a valid JSON.');
@@ -39,30 +35,13 @@ function App() {
     if (!resultsJson || !Array.isArray(resultsJson)) return null;
 
     const entryCount = resultsJson.length;
+    const fields = Object.keys(resultsJson[0] || {});
 
     return (
       <div className="summary">
         <h2>JSON Summary</h2>
         <p>Number of entries: {entryCount}</p>
-        {metrics && (
-          <div className="metrics">
-            <h3>Metrics</h3>
-            {Object.entries(metrics).map(([key, value]) => {
-              if (typeof value === 'object') {
-                return (
-                  <div key={key}>
-                    {key}:
-                    {Object.entries(value).map(([subKey, subValue]) => (
-                      <div key={`${key}-${subKey}`}>{subKey}: {subValue}</div>
-                    ))}
-                  </div>
-                );
-              } else {
-                return <div key={key}>{key}: {value}</div>;
-              }
-            })}
-          </div>
-        )}
+        <p>Fields: {fields.join(', ')}</p>
         <h3>Select an entry to view:</h3>
         <select onChange={(e) => setSelectedEntry(Number(e.target.value))}>
           <option value="">Select an entry</option>
